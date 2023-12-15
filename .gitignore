@@ -1,0 +1,11 @@
+# ignore data folder
+/code/data/
+
+# ignore .ipynb
+*.ipynb
+
+# ignore ._*
+._*
+
+# ignore .pyc
+*.pyc
