@@ -1,0 +1,5 @@
+# ignore data folder
+/code/data/
+
+# ignore .ipynb
+*.ipynb
