@@ -4,6 +4,8 @@ from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
+import re
+from tqdm import tqdm
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -34,6 +36,7 @@ def process_context_data(users, books, ratings1, ratings2):
         test 데이터의 rating
     ----------
     """
+    ## users 전처리
     # 특수문자 제거
     users['location'] = users['location'].str.replace(r'[^0-9a-zA-Z:,]', '', regex=True)
 
@@ -51,7 +54,7 @@ def process_context_data(users, books, ratings1, ratings2):
 
     # modify_location에 속한 city들에 대해 대표 location 값을 추출
     location_list = []
-    for location in modify_location:
+    for location in tqdm(modify_location):
         try:
             right_location = users[(users['location'].str.contains(location))&(users['location_country'].notnull())]['location'].value_counts().index[0]
             location_list.append(right_location)
@@ -64,6 +67,65 @@ def process_context_data(users, books, ratings1, ratings2):
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_country'] = location.split(',')[2]
     
     users = users.drop(['location'], axis=1)
+
+    ## books 전처리
+    # publisher에 lower 적용.
+    books['publisher'] = books['publisher'].str.lower()
+
+    # publisher_count_df 생성
+    publisher_dict=(books['publisher'].value_counts()).to_dict()
+    publisher_count_df= pd.DataFrame(list(publisher_dict.items()),columns = ['publisher','count'])
+
+    publisher_count_df = publisher_count_df.sort_values(by=['count'], ascending = False)
+
+    # books에 2권 이상 등장하는 publisher들
+    modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
+
+    # 해당 publisher의 isbn 첫 4자리로 등장하는 값들 중 가장 많이 등장하는 값을 number로 지정.
+    # isbn이 number로 시작하는 책들의 publisher 중 가장 많이 등장하는 값을 right_publisher로 지정.
+    # isbn이 number로 시작하는 책들의 publisher를 모두 right_publisher로 변경.
+    for publisher in tqdm(modify_list):
+        try:
+            number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
+            right_publisher = books[books['isbn'].apply(lambda x: x[:4])==number]['publisher'].value_counts().index[0]
+            books.loc[books[books['isbn'].apply(lambda x: x[:4])==number].index,'publisher'] = right_publisher
+        except:
+            pass
+
+    # category의 특수문자 제거, lower.
+    books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
+    books['category'] = books['category'].str.lower()
+    
+    # category가 NaN인 데이터 분리.
+    na_books = books[books['category'].isna()]
+    not_na_books = books[books['category'].notna()]
+
+    # na_books의 title 중 not_na_books에도 있는 것들
+    modify_list = na_books[na_books['book_title'].isin(not_na_books['book_title'])]['book_title'].values
+
+    # category 결측값 보완. 결측값 수 68851 -> 61996
+    for title in tqdm(modify_list):
+        right_category = books[books['book_title'] == title]['category'].value_counts().index[0]
+        books.loc[books[books['book_title'] == title].index,'category'] = right_category
+
+    # category 통합 기준
+    categories = ['garden','crafts','physics','adventure','music','fiction','nonfiction','science','science fiction','social','homicide',
+ 'sociology','disease','religion','christian','philosophy','psycholog','mathemat','agricult','environmental',
+ 'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
+ 'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
+    
+    # 기준 단어를 포함하는 category를 모두 기준 단어로 변경.
+    for category in categories:
+        books.loc[books[books['category'].str.contains(category,na=False)].index,'category'] = category
+
+    # 등장 횟수 5회 미만 category들은 other로 통합.
+    category_count_df = pd.DataFrame(books['category'].value_counts()).reset_index()
+    category_count_df.columns = ['category','count']
+
+    others_list = category_count_df[category_count_df['count']<5]['category'].values
+
+    books.loc[books[books['category'].isin(others_list)].index, 'category']='others'
+    # category 병합 결과, 4052가지 -> 454가지
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
