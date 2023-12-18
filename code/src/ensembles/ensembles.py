@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from tqdm import tqdm
 
 class Ensemble:
     '''
@@ -77,3 +77,51 @@ class Ensemble:
             post_idx = self.filenames[idx+1]
             result[self.output_df[pre_idx]<1] = self.output_df.loc[self.output_df[pre_idx]<1,post_idx]
         return result.tolist()
+
+    def custom(self):
+        '''
+        FM과 CF 앙상블.
+        FM의 가중치: 1/log(1 + (# of ratings of user + 1) + (# of ratings of book + 1))
+        CF의 가중치: 1 - FM의 가중치
+        '''
+        
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        result = []
+        for user_id, isbn, FM, CF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            w = np.log(3) / np.log(1 + (user_count + 1) + (book_count + 1))
+
+            result.append(w*FM + (1-w)*CF)
+
+        return result
+    
+    def custom2(self):
+        '''
+        FM과 CF 앙상블.
+        FM의 가중치: 1/log(1 + (# of ratings of user + 1) * (# of ratings of book + 1))
+        CF의 가중치: 1 - FM의 가중치
+        '''
+        
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        result = []
+        for user_id, isbn, FM, CF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            w = np.log(2) / np.log(1 + (user_count + 1) * (book_count + 1))
+
+            result.append(w*FM + (1-w)*CF)
+
+        return result
