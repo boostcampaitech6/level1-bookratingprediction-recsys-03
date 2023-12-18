@@ -22,6 +22,12 @@ def main(args):
     elif args.ensemble_strategy == 'mixed':
         strategy_title = args.ensemble_strategy.lower() #mixed
         result = en.mixed()
+    elif args.ensemble_strategy == 'custom':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom()
+    elif args.ensemble_strategy == 'custom2':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom2()
     else:
         pass
     en.output_frame['rating'] = result
@@ -80,7 +86,7 @@ if __name__ == "__main__":
         type=lambda s: [item for item in s.split(',')],
         help='required: 앙상블할 submit 파일명을 쉼표(,)로 구분하여 모두 입력해 주세요. 이 때, .csv와 같은 확장자는 입력하지 않습니다.')
     arg('--ensemble_strategy', type=str, default='weighted',
-        choices=['weighted','mixed'],
+        choices=['weighted','mixed','custom','custom2'],
         help='optional: [mixed, weighted] 중 앙상블 전략을 선택해 주세요. (default="weighted")')
     arg('--ensemble_weight', nargs='+',default=None,
         type=lambda s: [float(item) for item in s.split(',')],

@@ -9,3 +9,8 @@
 
 # ignore .pyc
 *.pyc
+
+# ignore log, saved_models, submit
+/code/log/
+/code/saved_models/
+/code/submit/
