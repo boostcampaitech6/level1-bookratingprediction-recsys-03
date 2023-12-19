@@ -1,0 +1,16 @@
+# ignore data folder
+/code/data/
+
+# ignore .ipynb
+*.ipynb
+
+# ignore ._*
+._*
+
+# ignore .pyc
+*.pyc
+
+# ignore log, saved_models, submit
+/code/log/
+/code/saved_models/
+/code/submit/
