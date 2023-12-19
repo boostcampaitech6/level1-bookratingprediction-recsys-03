@@ -54,6 +54,8 @@ test = pd.read_csv(path + 'test_ratings.csv')
 
 test['isbn'] = encoder.fit_transform(test[['isbn']])
 
+other = pd.read_csv('21746data.csv')
+
 for i in range(len(submit)):
     if list(ratings[ratings['user_id'] == submit.iloc[i,0]]['cnt']):
         if list(ratings[ratings['user_id'] == submit.iloc[i,0]]['cnt'])[0] >=5:
@@ -62,10 +64,10 @@ for i in range(len(submit)):
             submit['rating'][i] = c_model.predict(test['user_id'][i], test['isbn'][i]).est    
     else:
         # 데이터가 아예 없는 경우
-        submit['rating'][i] = c_model.predict(test['user_id'][i], test['isbn'][i]).est
+        submit['rating'][i] = other.iloc[i,2]
 
 
-submit.to_csv('submit.csv',index=False)
+submit.to_csv('submit_t.csv',index=False)
 
 
 # submit 8번 no data
