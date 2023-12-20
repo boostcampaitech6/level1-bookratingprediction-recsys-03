@@ -17,7 +17,7 @@ def main(args):
     print(f'--------------- {args.model} Load Data ---------------')
     if args.model in ('FM', 'FFM'):
         data = context_data_load(args)
-    elif args.model in ('NCF', 'WDN', 'DCN'):
+    elif args.model in ('NCF', 'WDN', 'DCN', 'MF'):
         data = dl_data_load(args)
     elif args.model == 'CNN_FM':
         data = image_data_load(args)
@@ -35,7 +35,7 @@ def main(args):
         data = context_data_split(args, data)
         data = context_data_loader(args, data)
 
-    elif args.model in ('NCF', 'WDN', 'DCN'):
+    elif args.model in ('NCF', 'WDN', 'DCN', 'MF'):
         data = dl_data_split(args, data)
         data = dl_data_loader(args, data)
 
@@ -77,7 +77,7 @@ def main(args):
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.model} PREDICT ---------------')
     submission = pd.read_csv(args.data_path + 'sample_submission.csv')
-    if args.model in ('FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
+    if args.model in ('FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN', 'MF'):
         submission['rating'] = predicts
     else:
         pass
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     ############### BASIC OPTION
     arg('--data_path', type=str, default='data/', help='Data path를 설정할 수 있습니다.')
     arg('--saved_model_path', type=str, default='./saved_models', help='Saved Model path를 설정할 수 있습니다.')
-    arg('--model', type=str, choices=['FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
+    arg('--model', type=str, choices=['FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN', 'MF'],
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
     arg('--data_shuffle', type=bool, default=True, help='데이터 셔플 여부를 조정할 수 있습니다.')
     arg('--test_size', type=float, default=0.2, help='Train/Valid split 비율을 조정할 수 있습니다.')
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     ############### FM, FFM, NCF, WDN, DCN Common OPTION
     arg('--embed_dim', type=int, default=16, help='FM, FFM, NCF, WDN, DCN에서 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--dropout', type=float, default=0.2, help='NCF, WDN, DCN에서 Dropout rate를 조정할 수 있습니다.')
-    arg('--mlp_dims', type=list, default=(16, 16), help='NCF, WDN, DCN에서 MLP Network의 차원을 조정할 수 있습니다.')
+    arg('--mlp_dims', type=int, default=(16, 16), help='NCF, WDN, DCN에서 MLP Network의 차원을 조정할 수 있습니다.', nargs='+')
 
 
     ############### DCN
@@ -142,7 +142,6 @@ if __name__ == "__main__":
     arg('--kernel_size', type=int, default=3, help='DEEP_CONN에서 1D conv의 kernel 크기를 조정할 수 있습니다.')
     arg('--word_dim', type=int, default=768, help='DEEP_CONN에서 1D conv의 입력 크기를 조정할 수 있습니다.')
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
-
 
     args = parser.parse_args()
     main(args)
