@@ -53,7 +53,8 @@ def models_load(args, data):
         print('init done')
     elif args.model=='Hybrid':
         model1 = LSTM_FM(args, data[0]).to(args.device)
-        model2 = NeuralCollaborativeFiltering(args, data[1]).to(args.device)
+        model2 = LSTM_FM(args, data[1]).to(args.device)
+        #model2 = NeuralCollaborativeFiltering(args, data[1]).to(args.device)
         model = [model1, model2]
     else:
         raise ValueError('MODEL is not exist : select model in [FM,FFM,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
