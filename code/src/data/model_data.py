@@ -54,7 +54,7 @@ def hybrid_data_load(args):
 
     data = {
             'train':train,
-            'test':test,  #drop rating?
+            'test':test,  
             'field_dims':field_dims,
             'users':users,
             'books':books,
@@ -81,8 +81,12 @@ def model_data_split(args, data):
             랜덤 seed 값
     ----------
     """
-    #각 모델에 들어갈 데이터 분리
+    # 인덱스 추가
+    # 각 모델에 들어갈 데이터 분리
     # 모델에 맞게 필요없는 feature 삭제
+    data['train']['index'] = data['train'].index
+    data['test']['index'] = data['test'].index
+
     upper_30_train = int(len(data['train']['user_id'].unique())*0.3)  #user_id의 30%
     upper_30_test = int(len(data['test']['user_id'].unique())*0.3)
     cold_start_train = data['train'].groupby('user_id')['rating'].count().sort_values(ascending=True).head(upper_30_train).index
@@ -97,13 +101,22 @@ def model_data_split(args, data):
     data_not_cold['train'] = data_not_cold['train'][~data_not_cold['train']['user_id'].isin(cold_start_train)]
     data_not_cold['test'] = data_not_cold['test'][~data_not_cold['test']['user_id'].isin(cold_start_train)]
 
+    #for LSTM cold/not cold
+    data_cold['text_train'] = data_cold['text_train'][(data_cold['text_train']['user_id'].isin(cold_start_train))]
+    data_cold['text_test'] = data_cold['text_test'][(data_cold['text_test']['user_id'].isin(cold_start_train))]
+    data_not_cold['text_train'] = data_not_cold['text_train'][~data_not_cold['text_train']['user_id'].isin(cold_start_train)]
+    data_not_cold['texet_test'] = data_not_cold['text_test'][~data_not_cold['text_test']['user_id'].isin(cold_start_train)]
+
     #불필요한 항목 삭제
     #data_cold: LSTM / data_not_cold: NCF #delete item
-    #idx는 train의 영향을 받음 <- 나중에 오류생길수도...일단 킵고잉
     del data_cold['field_dims']
-    del data_not_cold['text_train']
-    del data_not_cold['text_test']
     
-    data_not_cold['test'] = data_not_cold['test'].drop(['rating'], axis=1)
+    #for LSTM_FM not cold user
+    del data_not_cold['field_dims']
+    
+    #for NCF
+    # del data_not_cold['text_train']
+    # del data_not_cold['text_test']
+    #data_not_cold['test'] = data_not_cold['test'].drop(['rating'], axis=1)
 
     return data_cold, data_not_cold

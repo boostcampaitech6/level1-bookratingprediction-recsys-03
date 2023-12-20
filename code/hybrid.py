@@ -69,8 +69,10 @@ def main(args):
        data_cold = text_data_split(args, data_cold)
        data_cold = text_data_loader(args, data_cold)
        
-       data_not_cold = dl_data_split(args, data_not_cold)
-       data_not_cold = dl_data_loader(args, data_not_cold)
+    #    data_not_cold = dl_data_split(args, data_not_cold)
+    #    data_not_cold = dl_data_loader(args, data_not_cold)
+       data_not_cold = text_data_split(args, data_not_cold)
+       data_not_cold = text_data_loader(args, data_not_cold)
        
        data = [data_cold, data_not_cold]
        print('successful data split!')
@@ -103,12 +105,12 @@ def main(args):
     print('--------Training for cold user')
     model[0] = train(args, model[0], data[0], logger, setting)
 
-    args.model = 'NCF'
-    args.epoch = 15
-    args.optimizer = 'ADAM'
-    args.dropout = 0.5
-    args.lr = 0.001
-    args.batch_size = 256
+    # args.model = 'NCF'
+    # args.epoch = 15
+    # args.optimizer = 'ADAM'
+    # args.dropout = 0.5
+    # args.lr = 0.001
+    # args.batch_size = 256
     print('--------Trainging for not cold user')
     model[1] = train(args, model[1], data[1], logger, setting)
 
@@ -117,7 +119,7 @@ def main(args):
     print(f'--------------- {args.model} PREDICT ---------------')
     args.model = 'LSTM_FM'
     predicts_cold = test(args, model[0], data[0], setting)
-    args.model = 'NCF'
+    #args.model = 'NCF'
     predicts_not_cold = test(args, model[1], data[1], setting)
 
 
@@ -125,6 +127,7 @@ def main(args):
     print(f'--------------- SAVE {args.model} PREDICT ---------------')
     submission = pd.read_csv(args.data_path + 'sample_submission.csv')
     if args.model in ('FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN','LSTM_FM'):
+
         predicts = predicts_cold.extend(predicts_not_cold)
         submission['rating'] = predicts
 
