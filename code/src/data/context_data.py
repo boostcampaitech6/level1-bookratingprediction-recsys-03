@@ -127,12 +127,37 @@ def process_context_data(users, books, ratings1, ratings2):
     books.loc[books[books['category'].isin(others_list)].index, 'category']='others'
     # category 병합 결과, 4052가지 -> 454가지
 
+    # author 특수문자 제거, lower.
+    books.loc[books[books['book_author'].notnull()].index, 'book_author'] = books[books['book_author'].notnull()]['book_author'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
+    books['book_author'] = books['book_author'].str.lower()
+
+    # author_count_df 생성
+    author_count_df = books.groupby('book_author')['category'].nunique().reset_index()
+    author_count_df.rename(columns= {'book_author': 'author', 'category': 'count'}, inplace=True)
+
+    # 한 category의 작품만 쓴 작가들
+    one_category_author = author_count_df[author_count_df['count']==1]['author'].values
+
+    # one_category_author_df 생성
+    one_category_author_df = books[books['book_author'].isin(one_category_author)]
+
+    # 각 작가들이 쓴 유일한 category map
+    author_map = one_category_author_df[one_category_author_df['category'].notna()].groupby('book_author')['category'].unique()
+
+    # category 결측치 채우기
+    for author in tqdm(one_category_author):
+        books.loc[books[books['book_author']==author].index, 'category'] = author_map[author][0]
+
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
     # 인덱싱 처리된 데이터 조인
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
+
+    # 인기있는 상위 20개의 카테고리를 제외한 다른 카테고리는 전부 others로 분류
+    popular_categories = context_df['category'].value_counts().sort_values(ascending = False).index[:20]
+    context_df.loc[~context_df['category'].isin(popular_categories), 'category'] = 'others'
 
     # 인덱싱 처리
     loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
