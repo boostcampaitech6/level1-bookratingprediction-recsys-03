@@ -125,3 +125,205 @@ class Ensemble:
             result.append(w*FM + (1-w)*CF)
 
         return result
+    
+    def custom3(self):
+        '''
+        FM과 CF 앙상블.
+        FM의 가중치: 1/log(1 + (# of ratings of user + 1) * (# of ratings of book * 5 + 1))
+        CF의 가중치: 1 - FM의 가중치
+        '''
+        
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        result = []
+        for user_id, isbn, FM, CF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            w = np.log(2) / np.log(1 + (user_count + 1) * (book_count * 5 + 1))
+
+            result.append(w*FM + (1-w)*CF)
+
+        return result
+    
+    def custom4(self):
+        '''
+        FM과 CF 앙상블.
+        FM: (# of ratings of user) <= 5 and (# of ratings of book) <= 5
+        CF: 그 외
+        '''
+        
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        result = []
+        for user_id, isbn, FM, CF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            if user_count <= 5 or book_count <= 5:
+                result.append(FM)
+            else:
+                result.append(CF)
+
+        return result
+    
+    def custom5(self):
+        '''
+        FM과 CF 앙상블.
+        FM: (# of ratings of book) > 5
+        CF: 그 외
+        '''
+        
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        #user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        result = []
+        for user_id, isbn, FM, CF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            #user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            if book_count > 5:
+                output = FM
+            else:
+                output = CF
+            
+            if output > 10:
+                result.append(10)
+            elif output < 0:
+                result.append(0)
+            else:
+                result.append(output)
+
+        return result
+    
+    def custom6(self):
+        '''
+        FM과 CF 앙상블.
+        FM: CF 예측 4 미만 / LSTM
+        CF: 그 외 (FM과 평균) / MF
+        '''
+        
+        result = []
+        for FM, CF in tqdm(zip(self.output_list[0], self.output_list[1])):
+            if CF < 4:
+                output = FM
+            else:
+                output = (FM+CF)/2
+
+            if output > 10:
+                result.append(10)
+            elif output < 0:
+                result.append(0)
+            else:
+                result.append(output)
+
+        return result
+    
+    def custom7(self):
+        '''
+        FM과 CF 앙상블.
+        FM: 1 - CF의 가중치
+        CF: log(2) / log(1 + (# of book ratings + 1))
+        '''
+        
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        #user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        result = []
+        for user_id, isbn, FM, CF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            #user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            w = np.log(2) / np.log(1 + (book_count + 1))
+
+            result.append((1-w)*FM + w*CF)
+
+        return result
+    
+    def custom8(self):
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        mu = ratings['rating'].mean()
+
+        result = []
+        for user_id, isbn, LSTM, MF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            if user_count == 0 and book_count == 0:
+                result.append(mu)
+                continue
+
+            w = np.log(2) / np.log(1 + (book_count + 1))
+            w *= (LSTM + MF)/20
+
+            result.append((1-w)*LSTM + w*MF)
+
+        return result
+    
+    def custom9(self):
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        user_counts = ratings.groupby('user_id')['rating'].count().reset_index()
+        book_counts = ratings.groupby('isbn')['rating'].count().reset_index()
+
+        test = pd.read_csv('./data/test_ratings.csv')
+
+        mu = ratings['rating'].mean()
+
+        result = []
+        for user_id, isbn, LSTM, MF in tqdm(zip(test['user_id'], test['isbn'], self.output_list[0], self.output_list[1])):
+            user_count = user_counts[user_counts['user_id']==user_id]['rating'].values[0] if user_id in user_counts['user_id'].values else 0
+            book_count = book_counts[book_counts['isbn'] == isbn]['rating'].values[0] if isbn in book_counts['isbn'].values else 0
+            
+            if user_count == 0 and book_count == 0:
+                result.append(mu)
+                continue
+
+            if MF < 4:
+                output = LSTM
+            else:
+                w = np.log(2) / np.log(1 + (book_count + 1))
+                output = (1-w)*LSTM + w*MF
+
+            output = min(10, (max(0, output)))
+            result.append(output)
+
+        return result
+    
+    def custom10(self):
+        ratings = pd.read_csv('./data/train_ratings.csv')
+        mu = ratings['rating'].mean()
+
+        result = []
+        for LSTM, MF in tqdm(zip(self.output_list[0], self.output_list[1])):
+            avg = (LSTM+MF)/2
+            diff = abs(mu-avg)/10
+
+            output = 0.5*(1+diff)*LSTM + 0.5*(1-diff)*MF
+
+            if output > 10:
+                result.append(10)
+            elif output < 0:
+                result.append(0)
+            else:
+                result.append(output)
+
+        return result

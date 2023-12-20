@@ -28,6 +28,30 @@ def main(args):
     elif args.ensemble_strategy == 'custom2':
         strategy_title = args.ensemble_strategy.lower()
         result = en.custom2()
+    elif args.ensemble_strategy == 'custom3':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom3()
+    elif args.ensemble_strategy == 'custom4':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom4()
+    elif args.ensemble_strategy == 'custom5':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom5()
+    elif args.ensemble_strategy == 'custom6':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom6()
+    elif args.ensemble_strategy == 'custom7':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom7()
+    elif args.ensemble_strategy == 'custom8':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom8()
+    elif args.ensemble_strategy == 'custom9':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom9()
+    elif args.ensemble_strategy == 'custom10':
+        strategy_title = args.ensemble_strategy.lower()
+        result = en.custom10()
     else:
         pass
     en.output_frame['rating'] = result
@@ -86,7 +110,7 @@ if __name__ == "__main__":
         type=lambda s: [item for item in s.split(',')],
         help='required: 앙상블할 submit 파일명을 쉼표(,)로 구분하여 모두 입력해 주세요. 이 때, .csv와 같은 확장자는 입력하지 않습니다.')
     arg('--ensemble_strategy', type=str, default='weighted',
-        choices=['weighted','mixed','custom','custom2'],
+        choices=['weighted','mixed','custom','custom2','custom3','custom4','custom5','custom6','custom7','custom8','custom9','custom10'],
         help='optional: [mixed, weighted] 중 앙상블 전략을 선택해 주세요. (default="weighted")')
     arg('--ensemble_weight', nargs='+',default=None,
         type=lambda s: [float(item) for item in s.split(',')],
