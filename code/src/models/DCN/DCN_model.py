@@ -68,12 +68,21 @@ class DeepCrossNetworkModel(nn.Module):
         self.embed_output_dim = len(self.field_dims) * args.embed_dim
         self.cn = CrossNetwork(self.embed_output_dim, args.num_layers)
         self.mlp = MultiLayerPerceptron(self.embed_output_dim, args.mlp_dims, args.dropout, output_layer=False)
-        self.cd_linear = nn.Linear(args.mlp_dims[0], 1, bias=False)
+
+        self.parallel = args.DCN_parallel
+        if self.parallel:
+            self.cd_linear = nn.Linear(self.embed_output_dim+args.mlp_dims[-1], 1, bias=False)
+        else:
+            self.cd_linear = nn.Linear(args.mlp_dims[-1], 1, bias=False)
 
 
     def forward(self, x: torch.Tensor):
         embed_x = self.embedding(x).view(-1, self.embed_output_dim)
         x_l1 = self.cn(embed_x)
-        x_out = self.mlp(x_l1)
+        if self.parallel:
+            x_l2 = self.mlp(embed_x)
+            x_out = torch.concat((x_l1, x_l2), dim=1)
+        else:
+            x_out = self.mlp(x_l1)
         p = self.cd_linear(x_out)
         return p.squeeze(1)

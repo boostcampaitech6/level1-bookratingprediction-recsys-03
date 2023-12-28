@@ -92,6 +92,7 @@ def process_context_data(users, books, ratings1, ratings2):
         except:
             pass
 
+
     # category의 특수문자 제거, lower.
     books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
     books['category'] = books['category'].str.lower()
@@ -301,7 +302,7 @@ def context_data_loader(args, data):
     test_dataset = TensorDataset(torch.LongTensor(data['test'].values))
 
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=args.data_shuffle)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=args.data_shuffle)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=args.valid_batch_size, shuffle=args.data_shuffle)
     test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
     data['train_dataloader'], data['valid_dataloader'], data['test_dataloader'] = train_dataloader, valid_dataloader, test_dataloader

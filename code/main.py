@@ -119,8 +119,8 @@ if __name__ == "__main__":
     arg('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help='학습에 사용할 Device를 조정할 수 있습니다.')
 
 
-    ############### FM, FFM, NCF, WDN, DCN Common OPTION
-    arg('--embed_dim', type=int, default=16, help='FM, FFM, NCF, WDN, DCN에서 embedding시킬 차원을 조정할 수 있습니다.')
+    ############### MF, FM, FFM, NCF, WDN, DCN Common OPTION
+    arg('--embed_dim', type=int, default=16, help='MF, FM, FFM, NCF, WDN, DCN에서 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--dropout', type=float, default=0.2, help='NCF, WDN, DCN에서 Dropout rate를 조정할 수 있습니다.')
     arg('--mlp_dims', type=int, default=(16, 16), help='NCF, WDN, DCN에서 MLP Network의 차원을 조정할 수 있습니다.', nargs='+')
 
@@ -142,6 +142,10 @@ if __name__ == "__main__":
     arg('--kernel_size', type=int, default=3, help='DEEP_CONN에서 1D conv의 kernel 크기를 조정할 수 있습니다.')
     arg('--word_dim', type=int, default=768, help='DEEP_CONN에서 1D conv의 입력 크기를 조정할 수 있습니다.')
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
+
+    # custom    
+    arg('--valid_batch_size', type=int, default=1024, help='Valid batch size를 조정할 수 있습니다.')
+    arg('--DCN_parallel', type=bool, default=False, help='DCN 병렬화 여부를 조정할 수 있습니다.')
 
     args = parser.parse_args()
     main(args)
