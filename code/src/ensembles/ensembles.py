@@ -60,7 +60,7 @@ class Ensemble:
         weight = [1/len(self.output_list) for _ in range(len(self.output_list))]
         pred_weight_list = [pred*np.array(w) for pred, w in zip(self.output_list,weight)]
         result = np.sum(pred_weight_list, axis=0)
-        return result.tolist()
+        return [min(10,x) for x in result.tolist()]
 
 
     def mixed(self):
