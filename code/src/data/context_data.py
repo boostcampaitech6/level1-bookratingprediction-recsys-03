@@ -133,7 +133,12 @@ def process_context_data(users, books, ratings1, ratings2):
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-
+    
+    # 인기있는 상위 10개의 카테고리를 제외한 다른 카테고리는 전부 others로 분류
+    popular_categories = context_df['category'].value_counts().sort_values(ascending = False).index[:20]
+    context_df.loc[~context_df['category'].isin(popular_categories), 'category'] = 'others'
+    
+    
     # 인덱싱 처리
     loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
     loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
@@ -158,10 +163,12 @@ def process_context_data(users, books, ratings1, ratings2):
     author2idx = {v:k for k,v in enumerate(context_df['book_author'].unique())}
 
     train_df['category'] = train_df['category'].map(category2idx)
+    train_df['category'] = train_df['category'].fillna(0)
     train_df['publisher'] = train_df['publisher'].map(publisher2idx)
     train_df['language'] = train_df['language'].map(language2idx)
     train_df['book_author'] = train_df['book_author'].map(author2idx)
     test_df['category'] = test_df['category'].map(category2idx)
+    test_df['category'] = test_df['category'].fillna(0)
     test_df['publisher'] = test_df['publisher'].map(publisher2idx)
     test_df['language'] = test_df['language'].map(language2idx)
     test_df['book_author'] = test_df['book_author'].map(author2idx)
