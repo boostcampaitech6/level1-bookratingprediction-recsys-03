@@ -1,0 +1,10 @@
+[2023-12-15 06:10:13,094] - epoch : 1/10 | train loss : 4.405 | valid loss : 2.797
+[2023-12-15 06:10:16,168] - epoch : 2/10 | train loss : 2.489 | valid loss : 2.541
+[2023-12-15 06:10:19,488] - epoch : 3/10 | train loss : 2.142 | valid loss : 2.467
+[2023-12-15 06:10:22,633] - epoch : 4/10 | train loss : 1.925 | valid loss : 2.442
+[2023-12-15 06:10:25,949] - epoch : 5/10 | train loss : 1.771 | valid loss : 2.442
+[2023-12-15 06:10:29,147] - epoch : 6/10 | train loss : 1.657 | valid loss : 2.452
+[2023-12-15 06:10:32,260] - epoch : 7/10 | train loss : 1.573 | valid loss : 2.466
+[2023-12-15 06:10:35,378] - epoch : 8/10 | train loss : 1.510 | valid loss : 2.485
+[2023-12-15 06:10:38,447] - epoch : 9/10 | train loss : 1.463 | valid loss : 2.505
+[2023-12-15 06:10:41,654] - epoch : 10/10 | train loss : 1.427 | valid loss : 2.522
